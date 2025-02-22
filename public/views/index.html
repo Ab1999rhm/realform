@@ -2,35 +2,47 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registration Form</title>
+    <!-- Link to your CSS file -->
     <link rel="stylesheet" href="/css/form.css">
+    <style>
+        /* Additional inline styles */
+        .error-message {
+            color: red;
+            display: none; /* Hide error messages by default */
+        }
+        .loading-spinner {
+            display: none; /* Hide loading spinner by default */
+        }
+        .image-preview {
+            max-width: 100%;
+            height: auto;
+            display: none; /* Hide image preview by default */
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>Create Your Account</h1>
-        <form id="registrationForm" enctype="multipart/form-data" method="post" action="/register">
-            <!-- CSRF Token (Will be populated by server) -->
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-
+        <form id="registrationForm" enctype="multipart/form-data">
             <!-- First Name -->
             <div class="group_form">
                 <label for="firstName">First Name:</label>
-                <input type="text" name="firstName" id="firstName" placeholder="Enter your name" required aria-describedby="firstNameError">
+                <input type="text" name="firstName" id="firstName" placeholder="Enter your name" required>
                 <div class="error-message" id="firstNameError" role="alert" aria-live="polite">First name is required.</div>
             </div>
 
             <!-- Last Name -->
             <div class="group_form">
                 <label for="lastName">Last Name:</label>
-                <input type="text" name="lastName" id="lastName" placeholder="Enter your last name" required aria-describedby="lastNameError">
+                <input type="text" name="lastName" id="lastName" placeholder="Enter your last name" required>
                 <div class="error-message" id="lastNameError" role="alert" aria-live="polite">Last name is required.</div>
             </div>
 
             <!-- Password -->
             <div class="group_form">
                 <label for="password">Password:</label>
-                <input type="password" name="password" id="password" placeholder="Enter your password" required aria-describedby="passwordError passwordStrength">
+                <input type="password" name="password" id="password" placeholder="Enter your password" required>
                 <div class="password-strength" id="passwordStrength" aria-live="polite"></div>
                 <div class="error-message" id="passwordError" role="alert">Password must be at least 8 characters with a letter and number.</div>
             </div>
@@ -38,28 +50,28 @@
             <!-- Confirm Password -->
             <div class="group_form">
                 <label for="confirmPassword">Confirm Password:</label>
-                <input type="password" name="confirmPassword" id="confirmPassword" placeholder="Confirm your password" required aria-describedby="confirmPasswordError">
+                <input type="password" name="confirmPassword" id="confirmPassword" placeholder="Confirm your password" required>
                 <div class="error-message" id="confirmPasswordError" role="alert" aria-live="polite">Passwords do not match.</div>
             </div>
 
             <!-- Email -->
             <div class="group_form">
                 <label for="email">Email:</label>
-                <input type="email" name="email" id="email" placeholder="Enter your email" required aria-describedby="emailError">
+                <input type="email" name="email" id="email" placeholder="Enter your email" required>
                 <div class="error-message" id="emailError" role="alert" aria-live="polite">Please enter a valid email address.</div>
             </div>
 
             <!-- Date of Birth -->
             <div class="group_form">
                 <label for="dateOfBirth">Date of Birth:</label>
-                <input type="date" name="dateOfBirth" id="dateOfBirth" required aria-describedby="dobError">
+                <input type="date" name="dateOfBirth" id="dateOfBirth" required>
                 <div class="error-message" id="dobError" role="alert" aria-live="polite">You must be at least 13 years old.</div>
             </div>
 
             <!-- Gender -->
             <div class="group_form">
                 <label for="gender">Gender:</label>
-                <select name="gender" id="gender" required aria-describedby="genderError">
+                <select name="gender" id="gender" required>
                     <option value="">Select your gender</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
@@ -71,13 +83,13 @@
             <!-- Biography -->
             <div class="group_form">
                 <label for="biography">Biography:</label>
-                <textarea name="biography" id="biography" rows="4" placeholder="Tell us about yourself..." aria-describedby="biographyHelp"></textarea>
+                <textarea name="biography" id="biography" rows="4" placeholder="Tell us about yourself..."></textarea>
             </div>
 
             <!-- Profile Picture -->
             <div class="group_form">
                 <label for="profilePicture">Profile Picture:</label>
-                <input type="file" name="profilePicture" id="profilePicture" accept="image/*" required aria-describedby="profilePictureError">
+                <input type="file" name="profilePicture" id="profilePicture" accept="image/*" required>
                 <div class="error-message" id="profilePictureError" role="alert" aria-live="polite">Please upload a profile picture (JPEG/PNG).</div>
                 <img id="imagePreview" class="image-preview" alt="Image preview">
             </div>
@@ -87,28 +99,68 @@
                 <button type="submit" id="registerButton">Register</button>
             </div>
         </form>
-        <div class="loading-spinner" id="loadingSpinner"></div>
+        <div class="loading-spinner" id="loadingSpinner">Loading...</div>
     </div>
 
     <script>
-        const form = document.getElementById('registrationForm');
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('registrationForm');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const imagePreview = document.getElementById('imagePreview');
+            const profilePictureInput = document.getElementById('profilePicture');
 
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            
-            const formData = new FormData(form);
-            const response = await fetch('/register', {
-                method: 'POST',
-                body: formData,
+            // Image Preview
+            profilePictureInput.addEventListener('change', () => {
+                const file = profilePictureInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        imagePreview.src = reader.result;
+                        imagePreview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    imagePreview.src = '';
+                    imagePreview.style.display = 'none';
+                }
             });
-            
-            const result = await response.json();
-            
-            if (response.ok) {
-                alert('Registration successful');
-            } else {
-                alert(`Registration failed: ${result.error}`);
-            }
+
+            // Form Submission
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                // Show loading spinner
+                loadingSpinner.style.display = 'block';
+
+                const formData = new FormData(form);
+
+                try {
+                    const response = await fetch('https://realform-4g8155rbf-abrahams-projects-dd6fb99d.vercel.app/register', {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    // Hide loading spinner
+                    loadingSpinner.style.display = 'none';
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        alert('Registration successful');
+                        // Redirect to the view-registration page
+                        window.location.href = 'https://realform-4g8155rbf-abrahams-projects-dd6fb99d.vercel.app/view-registration';
+                    } else {
+                        // Handle HTTP errors
+                        const errorData = await response.json();
+                        alert(`Registration failed: ${errorData.error || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    // Hide loading spinner
+                    loadingSpinner.style.display = 'none';
+
+                    console.error('Error:', error);
+                    alert('An error occurred during registration. Please try again.');
+                }
+            });
         });
     </script>
 </body>
