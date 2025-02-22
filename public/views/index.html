@@ -19,7 +19,8 @@
             <div class="group_form">
                 <label for="firstName">First Name:</label>
                 <input type="text" name="firstName" id="firstName" 
-                       placeholder="Enter your name" required>
+                       placeholder="Enter your name" required
+                       autocomplete="given-name">
                 <div class="error-message" id="firstNameError">First name is required.</div>
             </div>
 
@@ -27,7 +28,8 @@
             <div class="group_form">
                 <label for="lastName">Last Name:</label>
                 <input type="text" name="lastName" id="lastName" 
-                       placeholder="Enter your last name" required>
+                       placeholder="Enter your last name" required
+                       autocomplete="family-name">
                 <div class="error-message" id="lastNameError">Last name is required.</div>
             </div>
 
@@ -55,21 +57,24 @@
             <div class="group_form">
                 <label for="email">Email:</label>
                 <input type="email" name="email" id="email" 
-                       placeholder="Enter your email" required>
+                       placeholder="Enter your email" required
+                       autocomplete="email">
                 <div class="error-message" id="emailError">Please enter a valid email address.</div>
             </div>
 
             <!-- Date of Birth -->
             <div class="group_form">
                 <label for="dateOfBirth">Date of Birth:</label>
-                <input type="date" name="dateOfBirth" id="dateOfBirth" required>
+                <input type="date" name="dateOfBirth" id="dateOfBirth" required
+                       autocomplete="bday">
                 <div class="error-message" id="dobError">You must be at least 13 years old.</div>
             </div>
 
             <!-- Gender -->
             <div class="group_form">
                 <label for="gender">Gender:</label>
-                <select name="gender" id="gender" required>
+                <select name="gender" id="gender" required
+                        autocomplete="sex">
                     <option value="">Select your gender</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
@@ -136,8 +141,11 @@
                         method: 'POST',
                         body: formData,
                         headers: {
+                            'Accept': 'application/json',
                             'Origin': window.location.origin
-                        }
+                        },
+                        credentials: 'include',
+                        mode: 'cors'
                     });
 
                     if (!response.ok) {

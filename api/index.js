@@ -13,20 +13,27 @@ const mongoosePaginate = require('mongoose-paginate-v2');
 const app = express();
 
 // Enhanced CORS Configuration
-const allowedOrigins = [
-    'https://realform-hkbxprodm-abrahams-projects-dd6fb99d.vercel.app',
-    'https://realform-git-main-abrahams-projects-dd6fb99d.vercel.app',
-    'https://realform-4g8155rbf-abrahams-projects-dd6fb99d.vercel.app'
-];
+const vercelPattern = /https:\/\/realform-.*-abrahams-projects-dd6fb99d\.vercel\.app/;
 
 app.use(cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+        if (
+            !origin || // Allow non-browser clients
+            vercelPattern.test(origin) || // Match Vercel pattern
+            origin === 'https://realform-4g8155rbf-abrahams-projects-dd6fb99d.vercel.app'
+        ) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Origin'],
-    credentials: true
+    credentials: true,
+    optionsSuccessStatus: 204
 }));
 
-app.options('*', cors()); // Preflight handling
+app.options('*', cors()); // Handle preflight requests
 
 // Cloudinary Configuration
 cloudinary.config({
