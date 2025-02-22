@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Registrations</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-top: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .registrations {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 20px;
+            width: 100%;
+        }
+        .registration {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .registration:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        .registration img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #2c3e50;
+            transition: transform 0.3s ease;
+        }
+        .registration img:hover {
+            transform: scale(1.05);
+            cursor: zoom-in;
+        }
+        .registration p {
+            margin: 10px 0;
+            color: #333;
+        }
+        .delete-btn {
+            background-color: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+        .pagination {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+        }
+        .pagination button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #2c3e50;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .pagination button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .pagination button:hover:not(:disabled) {
+            background-color: #1a242f;
+        }
+    </style>
+</head>
+<body>
+    <h1>View Registrations</h1>
+    <div class="container">
+        <div id="registrations" class="registrations"></div>
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <script>
+        async function loadRegistrations(page = 1) {
+            const credentials = prompt('Enter admin credentials in the format username:password');
+            if (!credentials || !credentials.includes(':')) {
+                alert('Invalid format. Please enter credentials in the format username:password');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/registrations?page=${page}&limit=10`, {
+                    headers: { 'Authorization': `Basic ${btoa(credentials)}` }
+                });
+
+                if (!response.ok) {
+                    alert('Authentication failed or server error');
+                    return;
+                }
+
+                const data = await response.json();
+                const totalPages = data.totalPages;
+                const currentPage = data.page;
+
+                const registrationsDiv = document.getElementById('registrations');
+                registrationsDiv.innerHTML = data.docs.map(reg => {
+                    const optimizedImageUrl = reg.profilePicture
+                        .replace('/upload/', '/upload/w_400,h_400,c_fill,q_auto,f_auto/');
+
+                    return `
+                        <div class="registration" id="${reg._id}">
+                            <img src="${optimizedImageUrl}" 
+                                 alt="${reg.firstName}'s profile picture"
+                                 onclick="window.open('${reg.profilePicture}')">
+                            <p><strong>Name:</strong> ${reg.firstName} ${reg.lastName}</p>
+                            <p><strong>Email:</strong> ${reg.email}</p>
+                            <p><strong>DOB:</strong> ${new Date(reg.dateOfBirth).toLocaleDateString()}</p>
+                            <p><strong>Gender:</strong> ${reg.gender}</p>
+                            ${reg.biography ? `<p><strong>Bio:</strong> ${reg.biography}</p>` : ''}
+                            <button class="delete-btn" onclick="deleteRegistration('${reg._id}')">Delete</button>
+                        </div>
+                    `;
+                }).join('');
+
+                const paginationDiv = document.getElementById('pagination');
+                paginationDiv.innerHTML = `
+                    <button ${currentPage === 1 ? 'disabled' : ''} onclick="loadRegistrations(${currentPage - 1})">Previous</button>
+                    <span>Page ${currentPage} of ${totalPages}</span>
+                    <button ${currentPage >= totalPages ? 'disabled' : ''} onclick="loadRegistrations(${currentPage + 1})">Next</button>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to load registrations');
+            }
+        }
+
+        async function deleteRegistration(id) {
+            const credentials = prompt('Enter admin credentials in the format username:password');
+            if (!credentials || !credentials.includes(':')) {
+                alert('Invalid format. Please enter credentials in the format username:password');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/registration/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Basic ${btoa(credentials)}` }
+                });
+
+                if (!response.ok) {
+                    alert('Failed to delete registration');
+                    return;
+                }
+
+                document.getElementById(id).remove();
+                alert('Registration deleted successfully');
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to delete registration');
+            }
+        }
+
+        // Initial load
+        loadRegistrations();
+    </script>
+</body>
+</html>
