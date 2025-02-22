@@ -15,7 +15,8 @@ const app = express();
 // Enable CORS for all routes
 const allowedOrigins = [
     'https://realform-git-main-abrahams-projects-dd6fb99d.vercel.app',
-    'https://realform-4g8155rbf-abrahams-projects-dd6fb99d.vercel.app'
+    'https://realform-4g8155rbf-abrahams-projects-dd6fb99d.vercel.app',
+    'https://realform-hjc2r87jy-abrahams-projects-dd6fb99d.vercel.app' // Add your new frontend origin here
 ];
 
 app.use(cors({
