@@ -13,8 +13,19 @@ const mongoosePaginate = require('mongoose-paginate-v2'); // Import the paginati
 const app = express();
 
 // Enable CORS for all routes
+const allowedOrigins = [
+    'https://realform-git-main-abrahams-projects-dd6fb99d.vercel.app',
+    'https://realform-4g8155rbf-abrahams-projects-dd6fb99d.vercel.app'
+];
+
 app.use(cors({
-    origin: 'https://realform-4g8155rbf-abrahams-projects-dd6fb99d.vercel.app', // Your deployed frontend URL
+    origin: function (origin, callback) {
+        if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ['GET', 'POST', 'DELETE'],
     credentials: true
 }));
@@ -71,7 +82,7 @@ const authenticateAdmin = (req, res, next) => {
     const authHeader = req.headers.authorization || '';
     const [username, password] = Buffer.from(authHeader.split(' ')[1] || '', 'base64').toString().split(':');
 
-    console.log(`Username: ${username}, Password: ${password}`);  // For debugging purposes
+    console.log(`Username: ${username}, Password: ${password}`);  // Add this line for debugging
 
     if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
         return next();
